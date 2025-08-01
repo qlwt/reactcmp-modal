@@ -1,4 +1,3 @@
-import { CmpContextAnimationRaw } from "#src/component/ctx-animation/element/raw.js"
 import { useContextAnimationGet } from "#src/component/ctx-animation/hook/get.js"
 import { CmpFG, type CmpFG_Props } from "#src/component/foreground/element/core.js"
 import * as sc from "@qyu/signal-core"
