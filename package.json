@@ -27,8 +27,8 @@
             "import": "./build/bundle/entry/index.js"
         },
         "./style/*": {
-            "types": "./dist/style/*.css",
-            "import": "./dist/style/*.d.ts"
+            "types": "./dist/style/*.d.ts",
+            "import": "./dist/style/*.css"
         }
     },
     "devDependencies": {
