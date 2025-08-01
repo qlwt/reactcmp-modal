@@ -1,0 +1,43 @@
+.foreground {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex-grow: 1;
+
+    background-color: rgba(0, 0, 0, 0.5);
+
+    transition: background-color .3s;
+}
+
+.foreground:focus {
+    background-color: rgba(0, 0, 0, 0.65);
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    display: flex;
+
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.overlay_hidden {
+    overflow: hidden;
+    user-select: none;
+    pointer-events: none;
+}
+
+.overlay_inactive {
+    display: none;
+}
+
+.body_inactive {
+    overlay: hidden;
+}
