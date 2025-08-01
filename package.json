@@ -1,7 +1,7 @@
 {
     "name": "@qyu/reactcmp-modal",
     "type": "module",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "main": "./build/bundle/entry/index.js",
     "description": "Generic Modal components for react",
     "keywords": ["react", "component", "element", "modal", "overlay", "animated", "focus"],
