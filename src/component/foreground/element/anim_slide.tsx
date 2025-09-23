@@ -26,8 +26,8 @@ export const CmpFGAnimSlide = r.memo(r.forwardRef<HTMLElement, CmpFGAnimSlide_Pr
     sr.useDOMStyleMap(
         r.useCallback(() => ref_foreground.current, [ref_foreground]),
         r.useMemo(() => sc.osignal_new_pipe(animation, state => {
-            const translate_raw = 100 - state * 100
-            const translate = props.easing ? props.easing(translate_raw) : translate_raw
+            const state_eased = props.easing ? props.easing(state) : state
+            const translate = 100 - state_eased * 100
 
             switch (props.animation_type) {
                 case "fromtop":
