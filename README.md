@@ -21,7 +21,7 @@ document.body.append(modalroot)
 
 ### Your App component
 
-```typescriptreact
+```tsx
 function App() {
     // register layers context - required, will throw if not done
     return <CmpContextLayersFilled>
@@ -32,7 +32,7 @@ function App() {
 
 ### Your Page component
 
-```typescriptreact
+```tsx
 function Page() {
     // register page as a layer - used to add accesibility, styles and control focus
     // z = -1 as page is always lower than any modal
@@ -57,7 +57,7 @@ function Page() {
 
 ### Your Toggle component
 
-```typescriptreact
+```tsx
 function Toggle() {
     // modal show controlled declaratively
     const [show, show_set] = r.useState(false)
@@ -120,7 +120,7 @@ function Toggle() {
 
 ### Modal with animations
 
-```typescriptreact
+```tsx
 function ToggleAnimFade() {
     // modal show controlled declaratively
     const [show, show_set] = r.useState(false)
@@ -178,7 +178,7 @@ List is poor so you might want to make custom one
 
 ### Custom foreground animation
 
-```typescriptreact
+```tsx
 // animations are signal based so need to use theese libraries
 import * as sc from "@qyu/signal-core"
 import * as sr from "@qyu/signal-react"
