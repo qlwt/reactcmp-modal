@@ -1,7 +1,7 @@
 {
     "name": "@qyu/reactcmp-modal",
     "type": "module",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "main": "./build/bundle/entry/index.js",
     "description": "Generic Modal components for react",
     "keywords": ["react", "component", "element", "modal", "overlay", "animated", "focus"],
@@ -45,7 +45,7 @@
         "@qyu/signal-core": "^1.2.0 || ^2.0.0",
         "@qyu/signal-react": "^1.2.2 || ^2.0.0",
         "@qyu/anim-core": "^1.0.2",
-        "@qyu/anim-react": "^1.0.4",
+        "@qyu/anim-react": "^1.0.4 || ^2.0.0",
         "tslib": "^2.6.3"
     },
     "peerDependencies": {
