@@ -1,4 +1,3 @@
-import { CmpContextAnimationRaw } from "#src/component/ctx-animation/element/raw.js"
 import CmpOverlayInstant, { type CmpOverlayInstant_Props } from "#src/component/overlay/element/instant.js"
 import * as ac from "@qyu/anim-core"
 import * as ar from "@qyu/anim-react"
@@ -6,71 +5,82 @@ import * as sc from "@qyu/signal-core"
 import * as r from "react"
 
 export type CmpOverlayAnimated_Props = (
-    & CmpOverlayInstant_Props
+    & Omit<CmpOverlayInstant_Props, "anim_tracker">
     & {
-        animation_velocity?: number
+        readonly anim_velocity?: number
 
-        on_didhide?: VoidFunction
-        on_willhide?: VoidFunction
-        on_didshow?: VoidFunction
-        on_willshow?: VoidFunction
+        readonly on_didhide?: VoidFunction
+        readonly on_willhide?: VoidFunction
+        readonly on_didshow?: VoidFunction
+        readonly on_willshow?: VoidFunction
     }
 )
 
 const fscheduler = ac.fscheduler_new_frame(performance, requestAnimationFrame, cancelAnimationFrame)
 
-export const CmpOverlayAnimated: r.FC<CmpOverlayAnimated_Props> = r.memo(props => {
-    const [visible, visible_set] = r.useState(props.show)
-    const animation_show = r.useMemo(() => sc.signal_new_value(Number(props.show)), [])
+export const CmpOverlayAnimated = r.memo(
+    r.forwardRef<HTMLDivElement, CmpOverlayAnimated_Props>((props, fref) => {
+        const anim_tracker = r.useMemo(() => sc.signal_new_value(Number(props.show)), [])
 
-    ar.useRunAnimInterval({
-        scheduler: fscheduler,
+        const [visible, visible_set] = r.useState(props.show)
 
-        src: ar.useAnimLine({
-            init: ar.useInputConstant({
-                state: Number(props.show)
-            }),
+        ar.useRunAnimInterval({
+            scheduler: fscheduler,
 
-            config: ar.useInputDynamicSet({
-                target: Number(props.show),
-                velocity: props.animation_velocity ?? 3e-3,
+            src: ar.useAnimLine({
+                init: ar.useInputConstant({
+                    state: Number(props.show)
+                }),
 
-                effect: state => {
-                    // for events
-                    const old_animation_show_o = animation_show.output()
+                config: ar.useInputDynamicSet(r.useMemo(() => ({
+                    target: Number(props.show),
+                    velocity: props.anim_velocity ?? 3e-3,
 
-                    animation_show.input(state)
+                    effect: state => {
+                        // for events
+                        const old_animation_show_o = anim_tracker.output()
 
-                    visible_set(state > 0)
+                        anim_tracker.input(state)
 
-                    // side effects
-                    if (state >= 1) {
-                        if (old_animation_show_o < 1) {
-                            props.on_didshow?.()
+                        visible_set(state > 0)
+
+                        // side effects
+                        if (state >= 1) {
+                            if (old_animation_show_o < 1) {
+                                props.on_didshow?.()
+                            }
+                        } else if (state > 0) {
+                            if (old_animation_show_o <= 0) {
+                                props.on_willshow?.()
+                            } else if (old_animation_show_o >= 1) {
+                                props.on_willhide?.()
+                            }
+                        } else if (state <= 0) {
+                            if (old_animation_show_o > 0) {
+                                props.on_didhide?.()
+                            }
                         }
-                    } else if (state > 0) {
-                        if (old_animation_show_o <= 0) {
-                            props.on_willshow?.()
-                        } else if (old_animation_show_o >= 1) {
-                            props.on_willhide?.()
-                        }
-                    } else if (state <= 0) {
-                        if (old_animation_show_o > 0) {
-                            props.on_didhide?.()
-                        }
-                    }
-                },
+                    },
+                }), [
+                    props.show,
+                    anim_tracker,
+                    props.anim_velocity,
+                    props.on_didhide,
+                    props.on_didshow,
+                    props.on_willhide,
+                    props.on_willshow,
+                ]))
             })
         })
-    })
 
-    return <CmpContextAnimationRaw.Provider value={animation_show}>
-        <CmpOverlayInstant
+        return <CmpOverlayInstant
             {...props}
 
+            ref={fref}
             show={visible}
+            anim_tracker={anim_tracker}
         />
-    </CmpContextAnimationRaw.Provider>
-})
+    })
+)
 
 export default CmpOverlayAnimated

@@ -1,208 +1,260 @@
 # @qyu/reactcmp-modal
 
-React component library for modal. Includes focus-management, animations, accessibility
+React Component to Render Modal Dialogs
 
-## Base usage without animation
+## Quick Start
 
-### First include required parts
-
-```typescript
-// import styles with your bundler or copy them by hand and reference in your html
-import "@qyu/reactcmp-modal/style/index.global"
-
-// append modal root
-const modalroot = document.createElement("div")
-
-// modal-root is default id for modal target, if you choose that id it will be used as default for portal targets
-modalroot.setAttribute("id", "modal-root")
-
-document.body.append(modalroot)
-```
-
-### Your App component
+### Import Styles
 
 ```tsx
-function App() {
-    // register layers context - required, will throw if not done
-    return <CmpContextLayersFilled>
-        <Page />
-    </CmpContextLayersFilled>
+import "@qyu/reactcmp-modal/style/index.css"
+```
+
+### Create Portal Root
+
+- Container with `id === "modal-root"` is auto-detected
+- Alternatively you can use `.portal` prop on component, it accepts either id `string` or `HTMLElement`
+
+```tsx
+const modal_root = document.createElement("div")
+
+{
+    modal_root.setAttribute("id", "modal-root")
+
+    document.body.appendChild(modal_root)
 }
 ```
 
-### Your Page component
+### Render Modal Context
 
 ```tsx
-function Page() {
-    // register page as a layer - used to add accesibility, styles and control focus
-    // z = -1 as page is always lower than any modal
-    // active - shows if page is visible (eg. display: none), exists - shows if page is rendered at all
-    // istop represents if layer is top layer or not
-    const istop = useLayerStackTop({ z: -1, active: true, exists: true })
-    // used to control focus
-    const ref_root = r.useRef<HTMLDivElement | null>(null)
+import * as rmdl from "@qyu/reactcmp-modal"
 
-    // focus controller will save focus when istop is changed to false and restore it back when istop is changed back
-    useFocusCapture({
-        active: istop,
-        target_new: r.useCallback(() => ref_root.current, [])
+function Root() {
+    return <rmdl.CmpCtxLayersAuto>
+        ...
+    </rmdl.CmpCtxLayersAuto>
+}
+```
+
+### Render App Root as Layer
+
+- `aria-hidden` and `focus capture` is not handled automatically
+- To apply them correctly, you need to register App as a `Layer`, so it could track self-position in relation to `Modals`
+- `useLayer` allows you to know wether current layer is on top in comparison to other layers
+- `useLayer` shall only be called once per layer, as it registeres new layer every time
+- `useFocusCapture` does not do focus-trap, it just manages autofocus and focus restoration
+
+```tsx
+import * as rmdl from "@qyu/reactcmp-modal"
+
+function App() {
+    const ref = r.useRef<HTMLDivElement | null>()
+
+    const { status_top } = rmdl.useLayer({
+        // app should logically be behind the modals
+        // it does not affect styles - just an internal representation
+        z: -1,
+        // is the content displayed? false when display: none
+        active: true,
+        // is layer registered? making false is the same as not using the hook at all
+        exists: true,
     })
 
-    // apply layer order based customisations
-    return <div ref={ref_root} aria-hidden={!istop}>
-        <Toggle />
+    rmdl.useFocusCapture({
+        layer_active: status_top,
+        screen_oref: r.useCallback(() => ref.current, [])
+
+        // prevent from focusing first element in the screen initially
+        focus_nomove: true,
+    })
+
+    // stays hidden when that screen is not on top
+    return <div ref={ref} aria-hidden={!status_top}>
+        
     </div>
 }
 ```
 
-### Your Toggle component
+### Render Modal
+
+- Modal is divided into `Overlay` and `Foreground` Components
+- `Overlay` is a static invisible layer that covers your screen
+- `Foreground` is optional, but common visual representation of Modal's base
 
 ```tsx
-function Toggle() {
-    // modal show controlled declaratively
-    const [show, show_set] = r.useState(false)
+import * as rmdl from "@qyu/reactcmp-modal"
+
+function ImportantButton() {
+    const [status_modal, status_modal_set] = r.useState(false)
 
     return <>
-        <button onClick={() => show_set(true)}>
-            Hello World
+        <button onClick={() => status_modal_set(true)}>
+            Do Important Thing
         </button>
 
-        {/* overlay is required wrapper for any modal - it registers layers, manages focus etc */}
-        <CmpOverlayInstant
-            show={show}
-
-            // optional, this represents existing z index, but does not affect anything in styles or render order
-            layer_z={1}
-            // optional, toggle if modal goes to not displayed. It will apply overlay_inactive styles (by default just make display: none)
-            layer_active={false}
-            // optional, target for modal portal, in this case optional as we have element with modal-root id that will be used by default
-            root={document.getElementById("modal-root")}
-            // optional, custom styles
-            styles={{
-                overlay: "myclassname"
-                // ...
-            }}
-        >
-            <CmpFG
-                // optional, required for custom modal close events to work
-                show_set={show_set}
-
-                // optional, custom styles
-                styles={{
-                    foreground: "myclassname",
-                    // ...
-                }}
-
-                // close events conditions, all optional, here represented with their default values
-                // close on foreground press
-                close_onpress={true}
-                // close on escape press
-                close_onescape={true}
-                // close on escape press event if event target is not directly foreground
-                close_onescape_global={true}
+        {/* Instant overlay is not animated and will be shown immediately */}
+        <rmdl.CmpOverlayInstant show={status_modal}>
+            <rmdl.CmpFg
+                // Foreground handles modal closing on click or escape press
+                show_set={status_modal_set}
             >
                 <div style={{
-                    position: "absolute",
                     top: "50%",
                     left: "50%",
-                    transform: "translateX(-50%) translateY(-50%);",
-                    background: "white",
-                    width: "200px",
-                    height: "200px"
+                    padding: "30px",
+                    borderRadius: "4px"
+                    backgroundColor: "white",
+                    transform: "translateX(-50%) translateY(-50%)", 
                 }}>
-                    Foreground is focused. Press on it or press enter/space/escape to close
+                    <div>
+                        Are you sure you want to proceede
+                    </div>
+
+                    <button 
+                        onClick={() => {
+                            // do your thing
+
+                            status_modal_set(false)
+                        }}
+                    >
+                        Yes I am
+                    </button>
                 </div>
-            </CmpFG>
-        </CmpOverlayInstant>
+            </rmdl.CmpFG>
+        </rmdl.CmpOverlayInstant>
     </>
 }
 ```
 
-### Modal with animations
+## Using Animated Modals
+
+- Use `CmpOverlayAnimated` to create animated overlay, it will hold modal shown while animation going
+- Use `CmpFGAnimFade` or `CmpFGAnimSlide` for animated foregrounds (or make your own animation)
 
 ```tsx
-function ToggleAnimFade() {
-    // modal show controlled declaratively
-    const [show, show_set] = r.useState(false)
+import * as rmdl from "@qyu/reactcmp-modal"
 
-    return <>
-        <button onClick={() => show_set(true)}>
-            Hello World
-        </button>
+type Props = {
+    show: boolean,
+    show_set: (value: boolean) => void 
+}
 
-        {/* Animated Overlay required for any animation */}
-        {/* Extends instant overlay properties so optional ones will be omited to not repeat */}
-        <CmpOverlayAnimated
-            show={show}
+function Animated(props: Props) {
+    return <rmdl.CmpOverlayAnimated 
+        show={props.show}
 
-            // animation moves from 0 to 1 linear. Velocity represents movement per ms
-            // optional, this animation will last 1/3 seconds. This is also default value
-            animation_velocity={3e-3}
+        // animation is going between 0<->1, speed is per ms
+        anim_velocity={1e-3}
+    >
+        <rmdl.CmpFGAnimFade 
+            show_set={props.show_set} 
 
-            // events, all optional
-            on_didhide={() => console.log("didhide")}
-            on_didshow={() => console.log("didshow")}
-            on_willshow={() => console.log("willshow")}
-            on_willhide={() => console.log("willhide")}
+            // to change the pace of animation
+            // you would probably want to use cubic bezier here
+            anim_easing={s => Math.sqrt(s)}
+
+            // events
+            on_didhide={() => {}}
+            on_willhide={() => {}}
+            on_willshow={() => {}}
+            on_didshow={() => {}}
         >
-            {/* Also extends all FG properties they also will be omited */}
-            {/* Opacty based fade animation */}
-            <CmpFGAnimFade
-                // lenear by default
-                // allows to add custom easing with bezier curve or any other function
-                easing={state => state * state}
-            >
-                <div style={{
-                    position: "absolute",
-                    top: "50%",
-                    left: "50%",
-                    transform: "translateX(-50%) translateY(-50%);",
-                    background: "white",
-                    width: "200px",
-                    height: "200px"
-                }}>
-                    Foreground is focused. Press on it or press enter/space/escape to close
-                </div>
-            </CmpFGAnimFade>
-        </CmpOverlayAnimated>
-    </>
+            Content
+        </rmdl.CmpFGAnimFade>
+
+        <rmdl.CmpFGAnimSlide
+            show_set={props.show_set} 
+
+            // fromright | fromleft | frombottom | fromtop
+            anim_dir={"fromright"}
+        >
+            Content
+        </rmdl.CmpFGAnimSlide>
+    </rmdl.CmpOverlayAnimated>
 }
 ```
 
-### Available animation out of the box
+## Managing Focus
 
-- CmpFGAnimFade
-- CmpFGAnimSlide
-
-List is poor so you might want to make custom one
-
-### Custom foreground animation
+- Implemented Focus Trap only handles basic cases when modal has natural tab-order
+- For other cases like `tabIndex >= 1`, `focus-groups`, `shadow-trees` etc., disable focus management and use external library
 
 ```tsx
-// animations are signal based so need to use theese libraries
+import * as rmdl from "@qyu/reactcmp-modal"
+
+function FGCustom() {
+    return <rmdl.CmpOverlayInstant focus_disabled>
+        <MyFocusTrap>
+            Content
+        </MyFocusTrap>
+    </rmdl.CmpOverlayInstant>
+}
+```
+
+## Custom Styles
+
+- Library comes with baseline styles, in some cases you would want to override them
+- Components that have baseline custom styles come with `.clmap` prop to override them
+- If you want to use library's styles as cssmodule - you can import them and pass to clmap instead of using global import
+
+```tsx
+import rmdl_st from "@qyu/reactcmp-modal/style/index.css"
+import * as rmdl from "@qyu/reactcmp-modal"
+
+function FGCustom() {
+    return <rmdl.CmpFGAnimSlide
+        className={"fg_custom"}
+
+        clmap={{
+            // use cssmodules instead of global css
+            ...rmdl_st,
+            // disable foreground class
+            fg: null,
+        }}
+    />
+}
+```
+
+## Custom Animations
+
+- `CmpOverlayAnimated` exposes `Signal` tracking the animation state, use it to sync foreground's styles
+
+```tsx
 import * as sc from "@qyu/signal-core"
 import * as sr from "@qyu/signal-react"
+import * as rmdl from "@qyu/reactcmp-modal"
 
-function FGAnimCustom(props: { children?: r.ReactNode }) {
-    const ref = r.useRef<HTMLDivElement | null>(null)
-    // get state signal from context, defined in CmpOverlayAnimated
-    const animstate = useContextAnimationGet()
+function CustomFG(props: rmdl.CmpFG_Props) {
+    const ref_foreground = r.useRef<HTMLElement | null>(null)
+    const anim_tracker = rmdl.useCtxModalAnimTracker()
 
-    // update styles
-    sr.useDOMStyleMap(
-        r.useCallback(() => ref.current, []),
+    sr.useDOMStyle(
+        r.useCallback(() => ref_foreground.current, []),
+        "opacity",
         r.useMemo(() => {
-            return sc.osignal_new_pipe(animstate, state => {
-                return {
-                    opacity: `${state}`
-                }
+            return sc.osignal_new_pipe(anim_tracker, anim_state => {
+                // anim_state is a number between 0 and 1
+                return `${anim_state}`
             })
-        }, [animstate])
+        }, [anim_tracker])
     )
 
-    // normal foreground
-    return <CmpFG ref={ref}>
-        {props.children}
-    </CmpFG>
+    return <CmpFG {...props} ref={ref_foreground} />
+}
+```
+
+## Default Style Variables
+
+```css
+:root {
+    /* default bgc for foreground */
+    --qyumdl-fg-bgc: rgba(0, 0, 0, 0.5);
+    /* when foreground is focused */
+    --qyumdl-fg-bgc_focus: rgba(0, 0, 0, 0.65);
+    /* foreground bgc trtime */
+    --qyumdl-fg-bgc-trtime: .25s;
+    /* baseline z-index used by all modal windows */
+    --qyumdl-overlay-layer_z-base: 10;
 }
 ```

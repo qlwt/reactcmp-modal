@@ -1,10 +1,10 @@
-import { useContextAnimationGet } from "#src/component/ctx-animation/hook/get.js"
+import { useCtxModalAnimTracker } from "#src/component/ctx-modal/hook/index.js"
 import { CmpFG, type CmpFG_Props } from "#src/component/foreground/element/core.js"
 import * as sc from "@qyu/signal-core"
 import * as sr from "@qyu/signal-react"
 import * as r from "react"
 
-export type CmpFGAnimSlide_AnimationType = (
+export type CmpFGAnimSlide_AnimDir = (
     | "fromtop"
     | "frombottom"
     | "fromleft"
@@ -13,23 +13,23 @@ export type CmpFGAnimSlide_AnimationType = (
 
 export type CmpFGAnimSlide_Props = (
     & CmpFG_Props
-    & Readonly<{
-        easing?: (state: number) => number
-        animation_type: CmpFGAnimSlide_AnimationType
-    }>
+    & {
+        readonly anim_easing?: (state: number) => number
+        readonly anim_dir: CmpFGAnimSlide_AnimDir
+    }
 )
 
 export const CmpFGAnimSlide = r.memo(r.forwardRef<HTMLElement, CmpFGAnimSlide_Props>((props, fref) => {
     const ref_foreground = r.useRef<HTMLElement | null>(null)
-    const animation = useContextAnimationGet()
+    const anim_tracker = useCtxModalAnimTracker()
 
     sr.useDOMStyleMap(
         r.useCallback(() => ref_foreground.current, [ref_foreground]),
-        r.useMemo(() => sc.osignal_new_pipe(animation, state => {
-            const state_eased = props.easing ? props.easing(state) : state
+        r.useMemo(() => sc.osignal_new_pipe(anim_tracker, state => {
+            const state_eased = props.anim_easing ? props.anim_easing(state) : state
             const translate = 100 - state_eased * 100
 
-            switch (props.animation_type) {
+            switch (props.anim_dir) {
                 case "fromtop":
                     return {
                         transform: `translateY(-${translate}%)`
@@ -47,7 +47,7 @@ export const CmpFGAnimSlide = r.memo(r.forwardRef<HTMLElement, CmpFGAnimSlide_Pr
                         transform: `translateX(${translate}%)`
                     }
             }
-        }), [animation, props.animation_type, props.easing])
+        }), [anim_tracker, props.anim_dir, props.anim_easing])
     )
 
     const ref = r.useCallback((element: HTMLElement | null) => {

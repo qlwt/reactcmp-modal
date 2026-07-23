@@ -1,42 +1,62 @@
-import { focus_order_new } from "#src/util/focus/order/new/index.js"
+import { focus_find_first } from "#src/util/focus/find/first.js"
 import * as r from "react"
 
-export type UseFocusCapture_Params = Readonly<{
-    active: boolean
-    target_new: () => HTMLElement | null
-}>
+export type UseFocusCapture_Params = {
+    readonly layer_active: boolean
+
+    readonly focus_nomove?: boolean
+    readonly focus_disabled?: boolean
+    readonly focus_config?: FocusOptions
+    readonly focus_target_oref?: () => HTMLElement | null
+
+    readonly screen_oref: () => HTMLElement | null
+}
+
+const dprop_focus_config: NonNullable<UseFocusCapture_Params["focus_config"]> = {
+    preventScroll: true,
+}
 
 export const useFocusCapture = function(params: UseFocusCapture_Params): void {
     const ref_lastfocus = r.useRef<HTMLElement | null>(null)
 
+    const nprop_focus_nomove = params.focus_nomove ?? false
+    const nprop_focus_disabled = params.focus_disabled ?? false
+    const nprop_focus_target_oref = params.focus_target_oref ?? null
+    const nprop_focus_config = params.focus_config ?? dprop_focus_config
+
     r.useLayoutEffect(() => {
-        if (!params.active) {
-            const modal = params.target_new()
+        const screen = params.screen_oref()
+
+        if (nprop_focus_disabled || !screen) { return }
+
+        if (!params.layer_active) {
             const active = document.activeElement
 
-            if (modal && active instanceof HTMLElement && modal.contains(active)) {
+            if (screen && active instanceof HTMLElement && screen.contains(active)) {
                 ref_lastfocus.current = active
             }
         }
-    }, [params.active, params.target_new])
+    }, [params.layer_active])
 
     r.useEffect(() => {
-        if (params.active) {
+        const screen = params.screen_oref()
+
+        if (nprop_focus_disabled || !screen) { return }
+
+        if (params.layer_active) {
             if (ref_lastfocus.current) {
-                ref_lastfocus.current.focus()
+                ref_lastfocus.current.focus(nprop_focus_config)
 
                 ref_lastfocus.current = null
-            } else {
-                const taborder = focus_order_new(params.target_new())
+            } else if (!nprop_focus_nomove) {
+                const target = nprop_focus_target_oref?.()
 
-                if (taborder.length >= 1) {
-                    taborder[0]!.focus()
+                if (target) {
+                    target.focus(nprop_focus_config)
                 } else {
-                    if (document.activeElement instanceof HTMLElement) {
-                        document.activeElement.blur()
-                    }
+                    focus_find_first(screen)?.focus(nprop_focus_config)
                 }
             }
         }
-    }, [params.active, params.target_new])
+    }, [params.layer_active])
 }

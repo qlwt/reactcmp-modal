@@ -1,0 +1,55 @@
+.__qyumdl {
+  &.fg {
+      flex-grow: 1;
+      display: block;
+      position: relative;
+
+      background-color: var(--qyumdl-fg-bgc, rgba(0, 0, 0, 0.5));
+
+      transition: background-color var(--qyumdl-fg-bgc-trtime, .25s);
+
+      &:focus {
+        background-color: var(--qyumdl-fg-bgc_focus, rgba(0, 0, 0, 0.65));
+      }
+  }
+
+  &.overlay {
+      z-index: calc(var(--qyumdl-overlay-layer_z-base, 10) + var(--qyumdl-overlay-layer_z-diff, 0));
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+
+      display: flex;
+
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+
+    &._hidden {
+        overflow: hidden;
+        user-select: none;
+        pointer-events: none;
+    }
+
+    &._inactive {
+        display: none;
+    }
+  }
+
+  &.focusguard {
+      user-select: none;
+      pointer-events: none;
+
+      position: fixed;
+      width: 0;
+      height: 0;
+      top: -100px;
+      left: -100px;
+  }
+}
+
+.__qyumdl_body_inactive {
+    overflow: hidden;
+}

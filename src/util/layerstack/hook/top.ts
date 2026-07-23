@@ -1,16 +1,20 @@
-import { useContextLayersGet } from "#src/component/ctx-layers/hook/get.js"
+import { useCtxLayers } from "#src/component/ctx-layers/hook/index.js"
 import type { LayerStack_Controls } from "#src/util/layerstack/new.js"
 import * as r from "react"
 
-export type UseLayerStackTop_Params = {
+export type UseLayer_Data = {
+    readonly status_top: boolean
+}
+
+export type UseLayer_Params = {
     readonly z: number
     readonly active: boolean
     readonly exists: boolean
 }
 
-export const useLayerStackTop = function(params: UseLayerStackTop_Params): boolean {
-    const layerlist = useContextLayersGet()
-    const [top, top_set] = r.useState(false)
+export const useLayer = function(params: UseLayer_Params): UseLayer_Data {
+    const layerlist = useCtxLayers()
+    const [status_top, top_set] = r.useState(false)
     const ref_controls = r.useRef<LayerStack_Controls | null>(null)
 
     // order not important
@@ -53,5 +57,7 @@ export const useLayerStackTop = function(params: UseLayerStackTop_Params): boole
         }
     }, [params.exists])
 
-    return top
+    return r.useMemo(() => ({
+        status_top,
+    }), [status_top])
 }

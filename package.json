@@ -1,14 +1,13 @@
 {
     "name": "@qyu/reactcmp-modal",
     "type": "module",
-    "version": "1.0.4",
+    "version": "2.0.0",
     "main": "./build/bundle/entry/index.js",
     "description": "Generic Modal components for react",
     "keywords": ["react", "component", "element", "modal", "overlay", "animated", "focus"],
     "homepage": "https://github.com/qlwt/reactcmp-modal#readme",
     "license": "MIT",
     "files": [
-        "./dist/**/*",
         "./build/**/*"
     ],
     "repository": {
@@ -16,10 +15,11 @@
         "url": "github:qlwt/reactcmp-modal"
     },
     "scripts": {
-        "build": "run-s build:clear build:rollup",
+        "build": "run-s build:clear build:style:module build:style:types build:rollup",
         "build:clear": "rimraf ./build",
-        "build:rollup": "rollup -c npm/rollup/rollup.config.js",
-        "test": "vitest --config ./npm/vite/vite.config.js"
+        "build:rollup": "rollup -c script/rollup/rollup.config.js",
+        "build:style:module": "sass ./src/style/index.module.scss:./build/style/index.css --no-source-map",
+        "build:style:types": "tcm ./build/style"
     },
     "exports": {
         ".": {
@@ -27,8 +27,8 @@
             "import": "./build/bundle/entry/index.js"
         },
         "./style/*": {
-            "types": "./dist/style/*.d.ts",
-            "import": "./dist/style/*.css"
+            "types": "./build/style/*.d.ts",
+            "import": "./build/style/*"
         }
     },
     "devDependencies": {
@@ -38,6 +38,8 @@
         "npm-run-all": "^4.1.5",
         "rimraf": "^6.0.1",
         "rollup": "^4.20.0",
+        "sass": "^1.101.7",
+        "typed-css-modules": "^0.9.1",
         "typescript": "^5.8.2",
         "typescript-transform-paths": "^3.5.5"
     },
