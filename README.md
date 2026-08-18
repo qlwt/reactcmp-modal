@@ -146,6 +146,8 @@ function Animated(props: Props) {
 
         // animation is going between 0<->1, speed is per ms
         anim_velocity={1e-3}
+        // init animation in a specific state, will be infered from props.show otherwise
+        anim_init={0}
     >
         <rmdl.CmpFGAnimFade 
             show_set={props.show_set} 

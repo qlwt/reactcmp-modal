@@ -7,6 +7,7 @@ import * as r from "react"
 export type CmpOverlayAnimated_Props = (
     & Omit<CmpOverlayInstant_Props, "anim_tracker">
     & {
+        readonly anim_init?: number
         readonly anim_velocity?: number
 
         readonly on_didhide?: VoidFunction
@@ -20,16 +21,17 @@ const fscheduler = ac.fscheduler_new_frame(performance, requestAnimationFrame, c
 
 export const CmpOverlayAnimated = r.memo(
     r.forwardRef<HTMLDivElement, CmpOverlayAnimated_Props>((props, fref) => {
-        const anim_tracker = r.useMemo(() => sc.signal_new_value(Number(props.show)), [])
+        const nprop_anim_init = props.anim_init ?? Number(props.show)
+        const anim_tracker = r.useMemo(() => sc.signal_new_value(nprop_anim_init), [])
 
-        const [visible, visible_set] = r.useState(props.show)
+        const [visible, visible_set] = r.useState(Boolean(nprop_anim_init))
 
         ar.useRunAnimInterval({
             scheduler: fscheduler,
 
             src: ar.useAnimLine({
                 init: ar.useInputConstant({
-                    state: Number(props.show)
+                    state: nprop_anim_init,
                 }),
 
                 config: ar.useInputDynamicSet(r.useMemo(() => ({
